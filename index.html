@@ -26,13 +26,6 @@
             gap: 8px;
         }
 
-        .brand-logo {
-            width: 42px;
-            height: 42px;
-            object-fit: contain;
-            border-radius: 8px;
-        }
-
         .admin-nav {
             color: #a35b00 !important;
         }
@@ -95,14 +88,6 @@
             aria-label="NICA Home"
         >
             <span class="brand-box">
-
-                <img
-                    class="brand-logo"
-                    src="/assets/NICA.png"
-                    alt="NICA"
-                    onerror="this.style.display='none'"
-                >
-
                 <span>
                     <strong>NICA</strong>
                     <br>
@@ -110,10 +95,10 @@
                         NOIDA INTERCOLLEGE CRICKET ASSOCIATION
                     </small>
                 </span>
-
             </span>
         </button>
 
+        <!-- Desktop navigation -->
         <nav
             class="desktop-nav"
             aria-label="Main navigation"
@@ -155,6 +140,7 @@
             </button>
         </nav>
 
+        <!-- Mobile menu button -->
         <button
             id="menuBtn"
             class="menu-btn"
@@ -191,6 +177,10 @@
                 ×
             </button>
         </div>
+
+        <button type="button" data-view="home">
+            🏠 Home
+        </button>
 
         <button type="button" data-view="live">
             🔴 Live
@@ -273,7 +263,7 @@
         </button>
     </aside>
 
-    <!-- Application content -->
+    <!-- Application root -->
     <main id="app">
         <div class="card empty">
             Loading NICA Cricket Association...
@@ -294,10 +284,7 @@
         Live Cricket · Players · Rankings · Records
     </footer>
 
-    <!--
-        The script is loaded after every required HTML element.
-        Change the version value whenever app.js is replaced.
-    -->
+    <!-- Load the corrected app.js -->
     <script src="/app.js?v=20260911-2132"></script>
 
     <noscript>
