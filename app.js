@@ -582,10 +582,17 @@ function normalizedExtraType(d){
 }
 function isWide(d){return normalizedExtraType(d)==="wide"}
 function isNoBall(d){return normalizedExtraType(d)==="no-ball"||normalizedExtraType(d)==="noball"}
-function legalBall(d){return !isWide(d)&&!isNoBall(d)}
-function batterBall(d){return legalBall(d)}
+const isLegal =
+    d.legal_delivery !== undefined
+        ? Boolean(d.legal_delivery)
+        : legalBall(d);
+
+const countsAsBallFaced =
+    d.counts_as_ball_faced !== undefined
+        ? Boolean(d.counts_as_ball_faced)
+        : batterBall(d);
 function bowlerRunsForDelivery(d){
-  const batterRuns=Number(d?.runs||0);
+  const batterRuns = Number(d?.runs_off_bat ?? d?.runs ?? 0);
   const extras=Number(d?.extra_runs||0);
   const parts=d?.extras&&typeof d.extras==="object"?d.extras:null;
   if(parts){
@@ -693,9 +700,10 @@ function calcMatch(ds,m,forcedInnings=null){
     if(bat[nonStrikerAtStart])bat[nonStrikerAtStart].seen=true;
 
     const isLegal=legalBall(d);
-    const batterRuns=Number(d.runs||0);
-    const extras=Number(d.extra_runs||0);
-    const total=batterRuns+extras;
+   const batterRuns = Number(d.runs_off_bat ?? d.runs ?? 0);
+   const extras = Number(d.extra_runs ?? 0);
+    const total = Number(
+    d.total_runs ?? (batterRuns + extras));
     const freeHit=deliveryIsFreeHit(freeHitPending);
     const wicketSignalled=Number(d.wicket||0)>0;
     const dismissed=resolveDismissedPlayer(d,bats,nonStrikerAtStart);
@@ -963,7 +971,11 @@ function deriveCompletedMatchResult(m){
   for(const d of ds){
     const n=Number(d?.innings||1);
     if(!innings[n])innings[n]={runs:0,wickets:0};
-    innings[n].runs+=Number(d?.runs||0)+Number(d?.extra_runs||0);
+    const totalRuns = Number(
+    d.total_runs ??
+    (Number(d.runs_off_bat ?? d.runs ?? 0) + Number(d.extra_runs ?? 0))
+);
+innings[n].runs += totalRuns;
     innings[n].wickets+=Number(d?.wicket||0);
   }
 
