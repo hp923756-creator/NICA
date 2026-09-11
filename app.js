@@ -35,7 +35,7 @@ let BALL_DELAY_SECONDS=25;
 let TOSS_BREAK_SECONDS=250;
 let INNINGS_BREAK_SECONDS=900;
 let OVER_BREAK_SECONDS=60;
-const app=document.getElementById("app");
+let app=document.getElementById("app");
 const CLOUD_API="/api/matches";
 let CLOUD_MATCHES=[];
 async function cloudMatches(){
@@ -109,11 +109,44 @@ function esc(x){return String(x??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&l
 function st(x){return TEAM_MAP[String(x||"").trim()]||String(x||"").trim()}
 function fmt(x){return Number(x||0).toLocaleString("en-IN")}
 function logo(t,cls="team-logo"){return `<img class="${cls}" src="${LOGOS[st(t)]||""}" alt="${esc(st(t))}">`}
-function navigate(v){view=v;closeMenu();render();scrollTo(0,0)}
-function closeMenu(){document.getElementById("drawer").classList.remove("open");document.getElementById("overlay").classList.remove("show")}
-document.querySelectorAll("[data-view]").forEach(b=>b.addEventListener("click",()=>navigate(b.dataset.view)));
-document.getElementById("menuBtn").onclick=()=>{document.getElementById("drawer").classList.add("open");document.getElementById("overlay").classList.add("show")};
-document.getElementById("closeMenu").onclick=closeMenu;document.getElementById("overlay").onclick=closeMenu;
+function closeMenu(){
+  document.getElementById("drawer")?.classList.remove("open");
+  document.getElementById("overlay")?.classList.remove("show");
+}
+function openMenu(){
+  document.getElementById("drawer")?.classList.add("open");
+  document.getElementById("overlay")?.classList.add("show");
+}
+function navigate(v){
+  if(!v)return;
+  view=v;
+  closeMenu();
+  render();
+  window.scrollTo?.(0,0);
+}
+function initNavigation(){
+  if(window.__nicaNavigationReady)return;
+  window.__nicaNavigationReady=true;
+  document.querySelectorAll("[data-view]").forEach(button=>{
+    button.addEventListener("click",event=>{
+      event.preventDefault();
+      navigate(button.dataset.view);
+    });
+  });
+  document.getElementById("menuBtn")?.addEventListener("click",event=>{
+    event.preventDefault();
+    openMenu();
+  });
+  document.getElementById("closeMenu")?.addEventListener("click",event=>{
+    event.preventDefault();
+    closeMenu();
+  });
+  document.getElementById("overlay")?.addEventListener("click",event=>{
+    event.preventDefault();
+    closeMenu();
+  });
+}
+Object.assign(window,{navigate,openMenu,closeMenu});
 ​
 function head(title,sub=""){return `<div class="page-head"><div><h1>${esc(title)}</h1>${sub?`<div class="muted">${esc(sub)}</div>`:""}</div></div>`}
 function table(h,rows){return `<div class="table-wrap"><table class="table"><thead><tr>${h.map(x=>`<th>${x}</th>`).join("")}</tr></thead><tbody>${rows.join("")}</tbody></table></div>`}
@@ -1631,5 +1664,18 @@ async function deleteCurrentLiveMatch(i){
 // Protected backward-compatible alias.
 async function deleteUploaded(i){return deleteCurrentLiveMatch(i)}
 ​
-loadData();
+function bootNica(){
+  app=document.getElementById("app");
+  if(!app){
+    console.error("NICA could not start: #app was not found.");
+    return;
+  }
+  initNavigation();
+  loadData().catch(error=>{
+    console.error("NICA startup failed:",error);
+    app.innerHTML=`<div class="card empty"><b>Unable to load NICA.</b><br>${esc(error?.message||error)}</div>`;
+  });
+}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bootNica,{once:true});
+else bootNica();
 ​
