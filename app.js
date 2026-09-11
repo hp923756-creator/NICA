@@ -1,35 +1,3 @@
-/* ============================================================
-   NICA FINAL APP.JS — BRANDING AND LOGO UPDATE
-   ============================================================
-​
-   Based on the full application app.js from the latest project.
-​
-   CHANGES MADE:
-   1. Playing XI: team logo removed.
-   2. Team Records: kept exactly as-is (there was already no logo
-      team-record rendering is no longer exposed in the website).
-   3. Main NICA header logo:
-      IMPORTANT — the header is rendered by index.html, NOT this
-      app.js. Therefore it cannot be safely changed here without
-      changing index.html. No other team-logo usage in app.js has
-      been removed, so match/team pages remain unchanged.
-​
-   EVERYTHING ELSE IS UNCHANGED:
-   - Supabase/cloud matches
-   - admin
-   - live match
-   - multi-device polling
-   - 20 sec ball timing
-   - 60 sec over break
-   - 15 min innings break
-   - scorecards
-   - Playing XI data
-   - rankings
-   - records
-   - team records
-   - match data
-   ============================================================ */
-​
 const DATA={}; let view="home", currentPlayer="", liveTimer=null, rankingFormat="T20", recordFormat="T20";
 let BALL_DELAY_SECONDS=25;
 let TOSS_BREAK_SECONDS=250;
@@ -1678,4 +1646,3 @@ function bootNica(){
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bootNica,{once:true});
 else bootNica();
-​
