@@ -24,7 +24,11 @@ async function cloudMatches(){
       rows=Array.isArray(rows.matches)?rows.matches:[];
     }
 
-    CLOUD_MATCHES=rows.map(x=>x?.match_json||x).filter(Boolean);
+    CLOUD_MATCHES=rows.map(x=>{
+      const match=x?.match_json||x;
+      if(match&&!match.match_id&&x?.id)match.match_id=x.id;
+      return match;
+    }).filter(Boolean);
     return CLOUD_MATCHES;
   }catch(e){
     console.warn("Shared match server unavailable:",e);
@@ -1417,7 +1421,7 @@ function renderAdminMatches(){
           Update Stats of Player
         </button>
 
-        ${started&&!finished?`<button class="btn delete-match-btn" onclick="deleteCurrentLiveMatch(${i})">🗑 Delete Current Live Match</button>`:""}
+        <button class="btn delete-match-btn" onclick="deleteCurrentLiveMatch(${i})">Delete Match</button>
       </div>
     </div>`;
   }).join("");
@@ -1617,13 +1621,9 @@ async function useUploaded(i){
 }
 async function deleteCurrentLiveMatch(i){
   const m=DATA.live_matches?.[i]; if(!m)return;
-  const status=String(m.status||"").toLowerCase();
-  if(!["live","in_progress","started"].includes(status)){
-    alert("Only the current live match can be deleted. Upcoming and completed matches are protected."); return;
-  }
   if(sessionStorage.getItem("nict_admin")!=="true"){alert("Admin authentication required.");return;}
   const name=`${st(m.team_a)} vs ${st(m.team_b)}`;
-  if(!confirm(`Delete ONLY the current live match?\n\n${name}\n\nThis permanently removes its saved scorecard from all devices.`))return;
+  if(!confirm(`Delete this match?\n\n${name}\n\nThis permanently removes its saved scorecard from all devices.`))return;
   try{
     await adminCloud("DELETE",null,m.match_id);
     DATA.live_matches=await cloudMatches();
@@ -1633,7 +1633,7 @@ async function deleteCurrentLiveMatch(i){
       if(view==="live")navigate("home");
     }
     renderAdminMatches();
-    alert("Current live match deleted from the shared server.");
+    alert("Match deleted from the shared server.");
   }catch(e){alert("Delete failed: "+e.message)}
 }
 // Protected backward-compatible alias.
