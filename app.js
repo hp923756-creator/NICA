@@ -323,7 +323,7 @@ function milestoneDelivery(ds,index){
 function renderLive(raw){
   const m=normalizedMatch(raw);
   const ds=m.deliveries||[];
-  const replayKey=`nict_replay_start_${m.match_id||m.id||"default"}`;
+  const replayKey=`nict_replay_start_v2_${m.match_id||m.id||"default"}`;
   let replayStarted=Number(localStorage.getItem(replayKey)||0);
   if(!replayStarted){
     replayStarted=Date.now()-(String(m.status||"").toLowerCase()==="completed"
