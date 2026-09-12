@@ -323,7 +323,15 @@ function milestoneDelivery(ds,index){
 function renderLive(raw){
   const m=normalizedMatch(raw);
   const ds=m.deliveries||[];
-  const elapsed=Math.max(0,m.started_at?(Date.now()-new Date(m.started_at).getTime())/1000:0);
+  const replayKey=`nict_replay_start_${m.match_id||m.id||"default"}`;
+  let replayStarted=Number(localStorage.getItem(replayKey)||0);
+  if(!replayStarted){
+    replayStarted=Date.now();
+    localStorage.setItem(replayKey,String(replayStarted));
+  }
+  const elapsed=Math.max(0,m.started_at
+    ?(Date.now()-new Date(m.started_at).getTime())/1000
+    :(Date.now()-replayStarted)/1000);
   const replayState=getReplayState(ds,elapsed,m);
   const shown=ds.slice(0,replayState.idx);
   const prepared=shown.map((d,i)=>({...d,display_ball:computedBallLabel(ds,i)}));
