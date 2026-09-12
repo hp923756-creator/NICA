@@ -326,7 +326,9 @@ function renderLive(raw){
   const replayKey=`nict_replay_start_${m.match_id||m.id||"default"}`;
   let replayStarted=Number(localStorage.getItem(replayKey)||0);
   if(!replayStarted){
-    replayStarted=Date.now();
+    replayStarted=Date.now()-(String(m.status||"").toLowerCase()==="completed"
+      ?(TOSS_BREAK_SECONDS+BALL_DELAY_SECONDS)*1000
+      :0);
     localStorage.setItem(replayKey,String(replayStarted));
   }
   const elapsed=Math.max(0,m.started_at
