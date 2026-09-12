@@ -3,7 +3,6 @@ let BALL_DELAY_SECONDS=25;
 let TOSS_BREAK_SECONDS=250;
 let INNINGS_BREAK_SECONDS=900;
 let OVER_BREAK_SECONDS=60;
-let lastStatsMatchSignature="";
 let app=document.getElementById("app");
 const CLOUD_API="/api/matches";
 let CLOUD_MATCHES=[];
@@ -146,7 +145,6 @@ async function loadData(){
      localStorage.setItem("nict_uploaded_matches",JSON.stringify(cloud));
    }
  }catch(e){console.warn("Cloud initial load failed",e)}
- await rebuildCareerFromCompletedMatches(false);
  selectSharedMatchFromURL();
  startCloudPolling();
  render();
@@ -163,14 +161,6 @@ function startCloudPolling(){
        if(view==="live"){renderLive(getActiveMatch())}
        if(view==="matches"){matches()}
        if(view==="admin"){renderAdminMatches()}
-       const signature=DATA.live_matches
-         .filter(m=>String(m.status||"").toLowerCase()==="completed"||isMatchFinished(m))
-         .map(m=>`${m.match_id||m.id}:${m.updated_at||m.completed_at||m.status}`)
-         .sort().join("|");
-       if(signature!==lastStatsMatchSignature){
-         lastStatsMatchSignature=signature;
-         rebuildCareerFromCompletedMatches(false);
-       }
      }
    }catch(e){console.warn("Cloud polling failed",e)}
  },3000);
@@ -1247,7 +1237,6 @@ function adminPanel(){
 
   <div class="section upload-box">
     <h2>Upload Match JSON</h2>
-    <p class="muted">Completed old matches update career records, rankings and team statistics automatically.</p>
     <input class="input file" id="jsonFile" type="file" accept=".json,application/json">
     <button class="btn" onclick="uploadJSON()">Upload Match</button>
     <p id="uploadMsg" class="muted"></p>
@@ -1278,7 +1267,7 @@ async function autoCompleteFinishedMatches(){
  try{
    for(const m of candidates){
      const result=deriveCompletedMatchResult(m);
-    const updated={...m,status:"completed",winner:result.winner||m.winner||"",result:result.text||m.result||"Match completed",completed_at:m.completed_at||new Date().toISOString(),player_records_enabled:true,player_stats_approved:true,player_stats_approved_at:m.player_stats_approved_at||new Date().toISOString(),points_table_enabled:true};
+     const updated={...m,status:"completed",winner:result.winner||m.winner||"",result:result.text||m.result||"Match completed",completed_at:m.completed_at||new Date().toISOString(),player_records_enabled:m.player_records_enabled===true,player_stats_approved:m.player_stats_approved===true};
      await adminCloud("POST",updated,m.match_id);
    }
    DATA.live_matches=await cloudMatches();
@@ -1574,15 +1563,12 @@ async function uploadJSON(){
 
     if(!d.match_id)d.match_id="MATCH_"+Date.now();
 
-    const historicalMatch=isMatchFinished(d);
-    d.status=historicalMatch?"completed":"upcoming";
-    d.started_at=d.started_at||null;
-    d.points_table_enabled=historicalMatch;
-    d.player_records_enabled=historicalMatch;
-    d.player_stats_approved=historicalMatch;
-    d.player_stats_approved_at=historicalMatch?new Date().toISOString():null;
-    d.rankings_enabled=historicalMatch;
-    d.records_applied=historicalMatch;
+    d.status="upcoming";
+    d.started_at=null;
+    d.points_table_enabled=false;
+    d.player_records_enabled=false;
+    d.rankings_enabled=false;
+    d.records_applied=false;
 
     const inningsOrder=deriveInningsOrder(d);
     d.batting_first=inningsOrder.first;
@@ -1609,8 +1595,6 @@ async function uploadJSON(){
     );
 
     if(msg)msg.textContent=`Uploaded successfully: ${d.team_a} vs ${d.team_b}`;
-
-    await rebuildCareerFromCompletedMatches(false);
 
     input.value="";
     renderAdminMatches();

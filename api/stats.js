@@ -289,9 +289,14 @@ function matchIsCompleted(row) {
     ).toLowerCase() ===
     "completed";
 
+  /*
+    A completed match does NOT automatically change player career
+    statistics. The admin must explicitly approve player stats from
+    the Admin panel.
+  */
   const approved =
-    m.player_records_enabled !== false &&
-    m.player_stats_approved !== false;
+    m.player_records_enabled === true ||
+    m.player_stats_approved === true;
 
   return completed && approved;
 }
